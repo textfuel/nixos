@@ -13,6 +13,19 @@ in
     gtk.enable = true;
   };
 
+  gtk = {
+    enable = true;
+    theme = {
+      name = "Adwaita-dark";
+      package = pkgs.gnome-themes-extra;
+    };
+  };
+
+  dconf.settings."org/gnome/desktop/interface" = {
+    color-scheme = "prefer-dark";
+    gtk-theme = "Adwaita-dark";
+  };
+
   services.mako = {
     enable = true;
     settings.default-timeout = 5000;

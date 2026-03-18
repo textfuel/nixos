@@ -7,10 +7,16 @@ let
     ${cmd.script}
   '';
 
-  powerMenu = dmenu "poweroff\nreboot\nsuspend\nlock\nlogout" {
+  dedupAndPoweroff = pkgs.writeShellScript "dedup-poweroff" ''
+    sudo duperemove -dr --io-threads="$(nproc)" --hashfile=/var/cache/duperemove.db /
+    systemctl poweroff
+  '';
+
+  powerMenu = dmenu "dedup & poweroff\npoweroff\nreboot\nsuspend\nlock\nlogout" {
     name = "power";
     script = ''
       case "$choice" in
+        "dedup & poweroff") ${dedupAndPoweroff} ;;
         poweroff) systemctl poweroff ;;
         reboot)   systemctl reboot ;;
         suspend)  systemctl suspend ;;

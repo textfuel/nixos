@@ -2,6 +2,28 @@
 
 let
   theme = import ./theme.nix;
+
+  smartCopy = pkgs.writeShellScript "smart-copy" ''
+    layout=$(swaymsg -t get_inputs | jq '[.[] | select(.type=="keyboard")][0].xkb_active_layout_index')
+    app=$(swaymsg -t get_tree | jq -r '.. | select(.focused?) | .app_id')
+    if [ "$app" = "foot" ]; then
+      wtype -M ctrl -M shift -k c -m shift -m ctrl
+    else
+      wtype -M ctrl -k c -m ctrl
+    fi
+    swaymsg input type:keyboard xkb_switch_layout "$layout"
+  '';
+
+  smartPaste = pkgs.writeShellScript "smart-paste" ''
+    layout=$(swaymsg -t get_inputs | jq '[.[] | select(.type=="keyboard")][0].xkb_active_layout_index')
+    app=$(swaymsg -t get_tree | jq -r '.. | select(.focused?) | .app_id')
+    if [ "$app" = "foot" ]; then
+      wtype -M ctrl -M shift -k v -m shift -m ctrl
+    else
+      wtype -M ctrl -k v -m ctrl
+    fi
+    swaymsg input type:keyboard xkb_switch_layout "$layout"
+  '';
 in
 {
   wayland.windowManager.sway = {
@@ -61,8 +83,9 @@ in
         enRun = cmd: "exec swaymsg input type:keyboard xkb_switch_layout 0 && ${cmd}";
       in {
         # Universal copy/paste (Ctrl+Shift+C/V for foot, Ctrl+C/V for others)
-        "${mod}+c" = "exec sh -c 'if [ \"$(swaymsg -t get_tree | jq -r \".. | select(.focused?) | .app_id\")\" = \"foot\" ]; then wtype -M ctrl -M shift -k c -m shift -m ctrl; else wtype -M ctrl -k c -m ctrl; fi'";
-        "${mod}+v" = "exec sh -c 'if [ \"$(swaymsg -t get_tree | jq -r \".. | select(.focused?) | .app_id\")\" = \"foot\" ]; then wtype -M ctrl -M shift -k v -m shift -m ctrl; else wtype -M ctrl -k v -m ctrl; fi'";
+        "${mod}+c" = "exec ${smartCopy}";
+        "${mod}+v" = "exec ${smartPaste}";
+
 
         # Apps
         "${mod}+Return" = "exec foot";
@@ -167,9 +190,7 @@ in
         "${mod}+Shift+Ctrl+l" = "move container to output right";
 
         # Screenshots
-        "Print" = "exec grim - | wl-copy";
-        "Ctrl+Print" = "exec grim -o $(swaymsg -t get_outputs | jq -r '.[] | select(.focused) | .name') - | wl-copy";
-        "Alt+Print" = "exec grim -g \"$(slurp)\" - | wl-copy";
+        "Print" = ''exec bash -c 'mkdir -p ~/Photos && f=~/Photos/$(date +%Y%m%d_%H%M%S).png && grim -g "$(slurp)" "$f" && wl-copy < "$f"' '';
 
       };
     };
@@ -205,7 +226,7 @@ in
       for_window [app_id="wdisplays"] floating enable
 
       # fsel launcher float
-      for_window [app_id="foot" title="fsel"] floating enable, resize set 900 500
+      for_window [app_id="foot" title="fsel"] floating enable, resize set 400 700
 
       # Environment
       exec export MOZ_ENABLE_WAYLAND=1

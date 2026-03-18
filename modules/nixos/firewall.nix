@@ -3,7 +3,7 @@
 {
   networking.firewall = {
     enable = true;
-    allowedTCPPorts = [ ];
-    allowedUDPPorts = [ ];
+    allowedTCPPorts = [ 51413 ]; # transmission
+    allowedUDPPorts = [ 51413 ]; # transmission
   };
 }

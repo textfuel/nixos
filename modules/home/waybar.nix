@@ -12,16 +12,16 @@ in
         position = "top";
         height = 30;
         modules-left = [ "sway/workspaces" ];
-        modules-right = [ "tray" "custom/displays" "pulseaudio" "sway/language" "clock" ];
+        modules-right = [ "tray" "custom/displays" "pulseaudio" "custom/language" "clock" ];
 
         "sway/workspaces" = {
           format = "{name}";
         };
 
-        "sway/language" = {
+        "custom/language" = {
+          exec = "swaymsg -t subscribe -m '[\"input\"]' | jq -r --unbuffered '.input.xkb_active_layout_name // empty' | while read -r layout; do echo \"$layout\" | head -c 2 | tr a-z A-Z; echo; done";
           format = "{}";
-          format-en = "EN";
-          format-ru = "RU";
+          tooltip = false;
         };
 
         "custom/displays" = {

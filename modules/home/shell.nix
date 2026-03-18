@@ -13,8 +13,7 @@
   programs.zsh = {
     enable = true;
     shellAliases = {
-      nrs = "nh os switch ~/nixos";
-      nrsf = "nix flake update --flake ~/nixos && nrs";
+      dedup = "sudo duperemove -dr --io-threads=$(nproc) --hashfile=/var/cache/duperemove.db /";
       lz = "lazygit";
       q = "exit";
       nv = "nvim";
@@ -72,6 +71,16 @@
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
         zstyle ':fzf-tab:*' switch-group '<' '>'
+
+        # NixOS rebuild
+        nrs() {
+          nh os switch ~/nixos
+          fsel --refresh-cache
+        }
+
+        nrsf() {
+          nix flake update --flake ~/nixos && nrs
+        }
 
         # Local bin
         path+=("$HOME/.local/bin")

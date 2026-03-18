@@ -6,16 +6,6 @@
     VISUAL = "nvim";
   };
 
-  programs.ssh = {
-    enable = true;
-    enableDefaultConfig = false;
-    matchBlocks."github.com" = {
-      hostname = "github.com";
-      identityFile = "~/.ssh/github";
-      addKeysToAgent = "yes";
-    };
-  };
-
   services.ssh-agent.enable = true;
 
   xdg.configFile."p10k/p10k.zsh".source = ./p10k.zsh;
@@ -82,6 +72,9 @@
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
         zstyle ':fzf-tab:*' switch-group '<' '>'
+
+        # Local bin
+        path+=("$HOME/.local/bin")
 
         # Emacs keybinds
         bindkey -e

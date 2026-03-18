@@ -7,5 +7,7 @@
     ./desktop.nix
     ./packages.nix
     ./docker.nix
+    ./firewall.nix
+    ./vpn.nix
   ];
 }

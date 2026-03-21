@@ -29,7 +29,7 @@
     enable = true;
     settings = {
       default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --remember --remember-session --asterisks --cmd 'sway --unsupported-gpu'";
+        command = "${pkgs.tuigreet}/bin/tuigreet --remember --remember-session --asterisks --cmd sway";
         user = "greeter";
       };
     };
@@ -43,15 +43,6 @@
     StandardOutput = "tty";
     TTYVTDisallocate = true;
   };
-
-  # Steam
-  programs.steam = {
-    enable = true;
-    remotePlay.openFirewall = true;
-    gamescopeSession.enable = true;
-  };
-  programs.gamescope.enable = true;
-  hardware.steam-hardware.enable = true;
 
 
 }

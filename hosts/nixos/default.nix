@@ -22,18 +22,24 @@
 
   time.timeZone = "Etc/GMT-5";
 
-  # Nix settings
+  zramSwap = {
+    enable = true;
+    memoryPercent = 100;
+  };
+
   nix.settings = {
     experimental-features = [ "nix-command" "flakes" ];
-    download-buffer-size = 524288000;
-    http-connections = 128;
-    max-substitution-jobs = 128;
+    download-buffer-size = 67108864;
+    http-connections = 4;
+    max-substitution-jobs = 2;
+    max-jobs = 1;
+    cores = 2;
     auto-optimise-store = true;
   };
   nix.gc = {
     automatic = true;
-    dates = "daily";
-    options = "--delete-older-than 15d";
+    dates = "weekly";
+    options = "--delete-older-than 7d";
   };
   nixpkgs.config.allowUnfree = true;
 

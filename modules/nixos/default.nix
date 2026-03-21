@@ -2,11 +2,10 @@
 
 {
   imports = [
-    ./nvidia.nix
+    ./intel.nix
     ./audio.nix
     ./desktop.nix
     ./packages.nix
-    ./docker.nix
     ./firewall.nix
     ./vpn.nix
   ];

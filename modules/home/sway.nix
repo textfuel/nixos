@@ -14,6 +14,30 @@ let
     swaymsg input type:keyboard xkb_switch_layout "$layout"
   '';
 
+  winCycle = pkgs.writeShellScript "win-cycle" ''
+    ids=($(swaymsg -t get_tree | jq '[.. | select(.pid? != null and .name? != null and .name != "") | select(.type == "con" or .type == "floating_con")] | sort_by(.id) | .[].id'))
+    cur=$(swaymsg -t get_tree | jq '.. | select(.focused?) | .id')
+    n=''${#ids[@]}
+    for i in $(seq 0 $((n-1))); do
+      if [ "''${ids[$i]}" = "$cur" ]; then
+        next=''${ids[$(( (i+1) % n ))]}
+        swaymsg "[con_id=$next]" focus
+        exit
+      fi
+    done
+  '';
+
+  urgentSwitcher = pkgs.writeShellScript "urgent-switcher" ''
+    swaymsg -t subscribe -m '["window"]' | while read -r event; do
+      change=$(echo "$event" | jq -r '.change')
+      urgent=$(echo "$event" | jq -r '.container.urgent')
+      id=$(echo "$event" | jq -r '.container.id')
+      if [ "$change" = "urgent" ] && [ "$urgent" = "true" ]; then
+        swaymsg "[con_id=$id]" focus
+      fi
+    done
+  '';
+
   smartPaste = pkgs.writeShellScript "smart-paste" ''
     layout=$(swaymsg -t get_inputs | jq '[.[] | select(.type=="keyboard")][0].xkb_active_layout_index')
     app=$(swaymsg -t get_tree | jq -r '.. | select(.focused?) | .app_id')
@@ -75,7 +99,8 @@ in
       bars = [];
 
       startup = [
-        { command = "systemctl --user set-environment XDG_CURRENT_DESKTOP=sway && systemctl --user import-environment WAYLAND_DISPLAY && systemctl --user restart xdg-desktop-portal && waybar"; }
+        { command = "systemctl --user set-environment XDG_CURRENT_DESKTOP=sway XDG_SESSION_DESKTOP=sway && systemctl --user import-environment && dbus-update-activation-environment --systemd --all && systemctl --user restart xdg-desktop-portal && waybar"; }
+        { command = "${urgentSwitcher}"; }
       ];
 
       keybindings = let
@@ -86,6 +111,8 @@ in
         "${mod}+c" = "exec ${smartCopy}";
         "${mod}+v" = "exec ${smartPaste}";
 
+        # Window switcher (all windows, all workspaces)
+        "${mod}+Tab" = "exec ${winCycle}";
 
         # Apps
         "${mod}+Return" = "exec foot";
@@ -97,7 +124,8 @@ in
         "XF86AudioRaiseVolume" = "exec vol up";
         "XF86AudioLowerVolume" = "exec vol down";
         "XF86AudioMute" = "exec vol mute";
-        "XF86AudioMicMute" = "exec vol mic-mute";
+        "XF86AudioMicMute" = "exec mic-mute";
+        "Scroll_Lock" = "exec mic-mute";
 
         # Media
         "XF86AudioPlay" = "exec playerctl play-pause";
@@ -190,7 +218,8 @@ in
         "${mod}+Shift+Ctrl+l" = "move container to output right";
 
         # Screenshots
-        "Print" = ''exec bash -c 'mkdir -p ~/Photos && f=~/Photos/$(date +%Y%m%d_%H%M%S).png && grim -g "$(slurp)" "$f" && wl-copy < "$f"' '';
+        "Print" = ''exec bash -c 'mkdir -p ~/Photos && f=~/Photos/$(date +%Y%m%d_%H%M%S).png && grim "$f" && wl-copy < "$f"' '';
+        "Ctrl+Print" = ''exec bash -c 'mkdir -p ~/Photos && f=~/Photos/$(date +%Y%m%d_%H%M%S).png && grim -g "$(slurp)" "$f" && wl-copy < "$f"' '';
 
       };
     };
@@ -203,30 +232,27 @@ in
 
       default_orientation horizontal
 
-      # Steam: float small windows (friends, settings, dialogs)
-      for_window [class="Steam" title="^Friends"] floating enable
-      for_window [class="Steam" title="^Steam Settings"] floating enable
-      for_window [class="Steam" title="^Screenshot"] floating enable
-      for_window [class="Steam" title="^Steam - News"] floating enable
+      # Default: everything floats
+      for_window [app_id=".*"] floating enable
+      for_window [class=".*"] floating enable
+
+      # Tile major apps
+      for_window [app_id="foot"] floating disable
+      for_window [app_id="vesktop"] floating disable, focus
+      for_window [app_id="librewolf"] floating disable
+      for_window [app_id="chromium-browser"] floating disable
+      for_window [app_id="org.obs_project.OBSStudio"] floating disable
+      for_window [class="Steam" title="^Steam$"] floating disable
+      for_window [class="steam_app_.*"] floating disable
+
       focus_on_window_activation focus
       seat seat0 xcursor_theme Bibata-Modern-Classic 24
 
-      # Focus Vesktop when activated from tray
-      for_window [app_id="vesktop"] focus
-      for_window [class="vesktop"] focus
-      for_window [class="Vesktop"] focus
-
-      # Firefox PiP
-      for_window [app_id="firefox" title="^Picture-in-Picture$"] floating enable
-
-      # pavucontrol float
-      for_window [app_id="org.pulseaudio.pavucontrol"] floating enable, resize set 900 600
-
-      # wdisplays float
-      for_window [app_id="wdisplays"] floating enable
-
-      # fsel launcher float
+      # Float overrides (specific windows of tiled apps)
       for_window [app_id="foot" title="fsel"] floating enable, resize set 400 700
+      for_window [app_id="firefox" title="^Picture-in-Picture$"] floating enable
+      for_window [app_id="org.pulseaudio.pavucontrol"] floating enable, resize set 900 600
+      for_window [app_id="wdisplays"] floating enable
 
       # Environment
       exec export MOZ_ENABLE_WAYLAND=1

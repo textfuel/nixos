@@ -1,6 +1,11 @@
 { config, lib, pkgs, inputs, ... }:
 
 {
+  xdg.desktopEntries.lsp-plugins = {
+    name = "LSP Plugins";
+    noDisplay = true;
+  };
+
   home.packages = [
     inputs.fsel.packages.${pkgs.stdenv.hostPlatform.system}.default
   ] ++ (with pkgs; [
@@ -10,6 +15,8 @@
     playerctl
     lazydocker
     lazygit
+    chromium
+    obs-studio
     spotify
     vesktop
     jq
@@ -20,6 +27,9 @@
     mako
     compsize
     duperemove
+    easyeffects
+    lsp-plugins
+    rnnoise-plugin
     pavucontrol
     wdisplays
     wtype

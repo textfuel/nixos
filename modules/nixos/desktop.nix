@@ -9,6 +9,12 @@
 
   programs.dconf.enable = true;
 
+  environment.sessionVariables = {
+    NIXOS_OZONE_WL = "1";
+    ELECTRON_OZONE_PLATFORM_HINT = "wayland";
+    XDG_SESSION_DESKTOP = "sway";
+  };
+
   # Portals (needed by waybar, screen sharing, etc.)
   xdg.portal = {
     enable = true;

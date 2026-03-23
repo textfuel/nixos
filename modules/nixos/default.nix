@@ -9,5 +9,6 @@
     ./docker.nix
     ./firewall.nix
     ./vpn.nix
+    ./performance.nix
   ];
 }

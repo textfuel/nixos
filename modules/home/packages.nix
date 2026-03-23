@@ -37,6 +37,8 @@
     stow
     zinit
     fzf
+    gh
+    glab
     sshs
 
     # Go

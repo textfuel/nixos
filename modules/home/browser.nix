@@ -1,6 +1,17 @@
 { config, lib, pkgs, ... }:
 
 {
+  xdg.mimeApps = {
+    enable = true;
+    defaultApplications = {
+      "text/html" = "librewolf.desktop";
+      "x-scheme-handler/http" = "librewolf.desktop";
+      "x-scheme-handler/https" = "librewolf.desktop";
+      "x-scheme-handler/about" = "librewolf.desktop";
+      "x-scheme-handler/unknown" = "librewolf.desktop";
+    };
+  };
+
   programs.firefox = {
     enable = true;
     package = pkgs.librewolf;
@@ -41,7 +52,7 @@
         "content.notify.interval" = 100000;
       };
       userChrome = ''
-        /* Hide native tabs — using Sidebery instead */
+        /* Hide native tabs - using Sidebery instead */
         #TabsToolbar {
           visibility: collapse !important;
         }
